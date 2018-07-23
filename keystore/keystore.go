@@ -9,6 +9,7 @@ import (
 	"errors"
 	"log"
 	"github.com/ethereum/go-ethereum/core/types"
+	"regexp"
 )
 
 var KeyStoreDir = flag.String("keystore.directory", "testnet", "specify runtime dir for keystore keys")
@@ -16,9 +17,30 @@ var Passphrase = flag.String("keystore.passphrase", "***REMOVED***", "Pashprase 
 var Address = *flag.String("ether.address", "0xCf16489612B1D8407Fd66960eCB21941718CD8FD", "Ethereum acc to use for deployment")
 var newAccount = *flag.Bool("create.account",  false, "Creates a new Ethereum address")
 
-type ActiveAccount struct {
+type FaucetAccount struct {
 	Keystore *keystore.KeyStore
 	Account *accounts.Account
+}
+
+func CreateFaucetAccount() (*FaucetAccount, error) {
+	err := createNewAccount()
+	if err != nil {
+		return nil, err
+	}
+
+	var ks *keystore.KeyStore
+	var account *accounts.Account
+
+	if Address != "" {
+		ks = getKeystore()
+		account, err = getUnlockedAcc(Address, ks)
+	} else {
+		log.Println("no address specified, generate new or choose from: ")
+		listAccounts()
+		return nil, errors.New("no account specified")
+	}
+
+	return &FaucetAccount{ks, account}, err
 }
 
 func getKeystore() *keystore.KeyStore {
@@ -41,23 +63,6 @@ func createNewAccount() (err error) {
 	return
 }
 
-func (aa *ActiveAccount) GetAccount() (*accounts.Account, error) {
-	err := createNewAccount()
-	if err != nil {
-		return nil, err
-	}
-
-	if Address != "" {
-		aa.Keystore = getKeystore()
-		aa.Account, err = getUnlockedAcc(Address, aa.Keystore)
-		return aa.Account, err
-	}
-
-	log.Println("no address specified, generate new or choose from: ")
-	listAccounts()
-	return nil, errors.New("no account specified")
-}
-
 func getUnlockedAcc(address string, ks *keystore.KeyStore) (*accounts.Account, error) {
 	searchAcc := accounts.Account{Address: common.HexToAddress(address)}
 	foundAcc, err := ks.Find(searchAcc)
@@ -71,7 +76,7 @@ func getUnlockedAcc(address string, ks *keystore.KeyStore) (*accounts.Account, e
 	return &foundAcc, nil
 }
 
-func (aa *ActiveAccount) CreateNewKeystoreTransactor() *bind.TransactOpts {
+func (aa *FaucetAccount) CreateNewKeystoreTransactor() *bind.TransactOpts {
 	return &bind.TransactOpts{
 		From: aa.Account.Address,
 		Signer: func(signer types.Signer, address common.Address, tx *types.Transaction) (*types.Transaction, error) {
@@ -86,4 +91,9 @@ func (aa *ActiveAccount) CreateNewKeystoreTransactor() *bind.TransactOpts {
 
 		},
 	}
+}
+
+func IsAddressValid(address string) bool {
+	var validID = regexp.MustCompile(`^0x[a-fA-F0-9]{40}$`)
+	return validID.MatchString(address)
 }
