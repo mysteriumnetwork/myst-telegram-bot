@@ -2,6 +2,15 @@
 
 
 [[projects]]
+  name = "github.com/MysteriumNetwork/payments"
+  packages = [
+    "cli/helpers",
+    "mysttoken/generated"
+  ]
+  revision = "668aca9395422a07544797fb96bb32a743e83d61"
+  version = "v0.0.3-beta"
+
+[[projects]]
   branch = "master"
   name = "github.com/aristanetworks/goarista"
   packages = ["monotime"]
@@ -12,6 +21,12 @@
   name = "github.com/btcsuite/btcd"
   packages = ["btcec"]
   revision = "f673a4b563b57b9a95832545c878669a7fa801d9"
+
+[[projects]]
+  name = "github.com/cheggaaa/pb"
+  packages = ["."]
+  revision = "c112833d014c77e8bde723fd0158e3156951639f"
+  version = "v2.0.6"
 
 [[projects]]
   name = "github.com/davecgh/go-spew"
@@ -61,6 +76,18 @@
   name = "github.com/golang/snappy"
   packages = ["."]
   revision = "2e65f85255dbc3072edf28d6b5b8efc472979f5a"
+
+[[projects]]
+  name = "github.com/mattn/go-colorable"
+  packages = ["."]
+  revision = "167de6bfdfba052fa6b2d3664c8f5272e23c9072"
+  version = "v0.0.9"
+
+[[projects]]
+  name = "github.com/mattn/go-isatty"
+  packages = ["."]
+  revision = "0360b2af4f38e8d38c7fce2a9f4e702702d73a39"
+  version = "v0.0.3"
 
 [[projects]]
   name = "github.com/pborman/uuid"
@@ -149,6 +176,24 @@
   revision = "32950ab3be12acf6d472893021373669979907ab"
 
 [[projects]]
+  name = "gopkg.in/VividCortex/ewma.v1"
+  packages = ["."]
+  revision = "b24eb346a94c3ba12c1da1e564dbac1b498a77ce"
+  version = "v1.1.1"
+
+[[projects]]
+  name = "gopkg.in/cheggaaa/pb.v2"
+  packages = ["termutil"]
+  revision = "c112833d014c77e8bde723fd0158e3156951639f"
+  version = "v2.0.6"
+
+[[projects]]
+  name = "gopkg.in/fatih/color.v1"
+  packages = ["."]
+  revision = "5b77d2a35fb0ede96d138fc9a99f5c9b6aef11b4"
+  version = "v1.7.0"
+
+[[projects]]
   name = "gopkg.in/fatih/set.v0"
   packages = ["."]
   revision = "57907de300222151a123d29255ed17f5ed43fad3"
@@ -159,6 +204,24 @@
   name = "gopkg.in/karalabe/cookiejar.v2"
   packages = ["collections/prque"]
   revision = "8dcd6a7f4951f6ff3ee9cbb919a06d8925822e57"
+
+[[projects]]
+  name = "gopkg.in/mattn/go-colorable.v0"
+  packages = ["."]
+  revision = "167de6bfdfba052fa6b2d3664c8f5272e23c9072"
+  version = "v0.0.9"
+
+[[projects]]
+  name = "gopkg.in/mattn/go-isatty.v0"
+  packages = ["."]
+  revision = "0360b2af4f38e8d38c7fce2a9f4e702702d73a39"
+  version = "v0.0.3"
+
+[[projects]]
+  name = "gopkg.in/mattn/go-runewidth.v0"
+  packages = ["."]
+  revision = "9e777a8366cce605130a531d2cd6363d07ad7317"
+  version = "v0.0.2"
 
 [[projects]]
   branch = "v2"
@@ -175,6 +238,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "98be7d9ae44cb329a03418995eb8d53a057cf28217d94bf037ced63e08cba2dd"
+  inputs-digest = "3a39a5727c38995990062cf452a074a59b2ed8362ae46679d08a73006cb57f11"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -5,10 +5,11 @@ import (
 	"log"
 	"strings"
 
-	"github.com/ethereum/go-ethereum/accounts"
+	"fmt"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/mysterium/myst-telegram-bot/ethclient"
-	"github.com/mysterium/myst-telegram-bot/keystore"
+	"github.com/mysterium/myst-telegram-bot/faucet"
 	"gopkg.in/telegram-bot-api.v4"
 )
 
@@ -18,10 +19,10 @@ var ErrCommandInvalid = errors.New("invalid command, available commands: \n /sen
 
 type Bot struct {
 	Api           *tgbotapi.BotAPI
-	FaucetAccount *keystore.FaucetAccount
+	FaucetAccount *faucet.FaucetAccount
 }
 
-func CreateBot(fa *keystore.FaucetAccount) (*Bot, error) {
+func CreateBot(fa *faucet.FaucetAccount) (*Bot, error) {
 	Api, err := tgbotapi.NewBotAPI("***REMOVED***")
 	if err != nil {
 		return nil, err
@@ -47,24 +48,28 @@ func (bot *Bot) UpdatesProcessingLoop() error {
 		log.Printf("[%s %s (%s-%s)] %s", update.Message.From.FirstName, update.Message.From.LastName,
 			update.Message.From.UserName, update.Message.From.LanguageCode, update.Message.Text)
 
-		toAccount, err := getEtherAccount(update.Message.Text)
+		toAddress, err := getEtherAddress(update.Message.Text)
 		if err != nil {
 			bot.sendBotMessage(update, err.Error())
 			log.Println(err)
 			continue
 		}
 
-		err = ethclient.PrintBalance(bot.FaucetAccount.Account)
+		err = ethclient.PrintBalance(bot.FaucetAccount.Acc)
 		if err != nil {
 			log.Println(err)
 		}
 
-		log.Println("sending 0.01 eth to: ", toAccount.Address.String())
-		err = ethclient.TransferFunds(bot.FaucetAccount, toAccount)
+		log.Println("sending 0.01 eth to: ", toAddress.String())
+		//err = ethclient.TransferFunds(bot.FaucetAccount, toAddress)
+		err = ethclient.TransferFundsViaPaymentsABI(bot.FaucetAccount, toAddress)
 		if err != nil {
 			bot.sendBotMessage(update, err.Error())
 			log.Println(err)
 		}
+		msg := fmt.Sprintf("MYST tokens transfer initiated. Check https://ropsten.etherscan.io/address/%s in a few seconds.", toAddress.String())
+		log.Printf("sending command reply: %s", msg)
+		bot.sendBotMessage(update, msg)
 	}
 
 	return nil
@@ -77,7 +82,7 @@ func (bot *Bot) sendBotMessage(update tgbotapi.Update, message string) {
 	bot.Api.Send(msg)
 }
 
-func getEtherAccount(botText string) (account *accounts.Account, err error) {
+func getEtherAddress(botText string) (*common.Address, error) {
 	botText = strings.TrimSpace(botText)
 	command := strings.Fields(botText)
 
@@ -90,17 +95,13 @@ func getEtherAccount(botText string) (account *accounts.Account, err error) {
 
 	switch command[0] {
 	case "/send":
-		if !keystore.IsAddressValid(command[1]) {
-			return nil, ErrCommandIncomplete
+		if !faucet.IsAddressValid(command[1]) {
+			return nil, ErrEtherAddressInvalid
 		}
 	default:
 		return nil, ErrCommandInvalid
 	}
-	return addressToAccount(address), nil
-}
 
-func addressToAccount(address string) *accounts.Account {
-	return &accounts.Account{
-		Address: common.HexToAddress(address),
-	}
+	etherAddress := common.HexToAddress(address)
+	return &etherAddress, nil
 }

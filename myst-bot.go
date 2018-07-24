@@ -1,18 +1,18 @@
 package main
 
 import (
-	"log"
 	"flag"
-	"github.com/mysterium/myst-telegram-bot/keystore"
+	"log"
+
 	"github.com/mysterium/myst-telegram-bot/bot"
+	"github.com/mysterium/myst-telegram-bot/faucet"
 )
 
 var erc20contract = flag.String("erc20.address", "", "Address of ERC20 mintable token")
 var amount = flag.Int64("amount", 1000, "Amount of tokens to mint")
 
-
 func main() {
-	faucetAccount, err := keystore.CreateFaucetAccount()
+	faucetAccount, err := faucet.CreateFaucetAccount()
 	if err != nil {
 		log.Panicln(err)
 	}
@@ -23,7 +23,7 @@ func main() {
 	}
 
 	//bot.Debug = true
-	log.Println("using account: ", bot.FaucetAccount.Account.Address.String())
+	log.Println("using account: ", bot.FaucetAccount.Acc.Address.String())
 	log.Printf("Authorized on account %s", bot.Api.Self.UserName)
 
 	err = bot.UpdatesProcessingLoop()
@@ -31,4 +31,3 @@ func main() {
 		log.Panicln(err)
 	}
 }
-
