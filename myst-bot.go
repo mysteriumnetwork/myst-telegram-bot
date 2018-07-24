@@ -1,16 +1,44 @@
 package main
 
 import (
+	"errors"
+	"flag"
+	"fmt"
+	"os"
+
 	"log"
 
 	"github.com/mysterium/myst-telegram-bot/account"
 	"github.com/mysterium/myst-telegram-bot/bot"
 )
 
+var cmd = flag.String("cmd", "run", "Command to execute")
+
 func main() {
+	flag.Parse()
+	err := executeCommand(*cmd)
+	if err != nil {
+		fmt.Printf("error occuried: %v\n", err)
+		os.Exit(-1)
+	}
+}
+
+func executeCommand(cmd string) error {
+	fmt.Println("Executing: " + cmd)
+	switch cmd {
+	case "help":
+		flag.Usage()
+		return nil
+	case "run":
+		return run()
+	}
+	return errors.New("unknown command: " + cmd)
+}
+
+func run() error {
 	faucetAccount, err := account.CreateFaucetAccount()
 	if err != nil {
-		log.Panicln(err)
+		return err
 	}
 
 	bot, err := bot.CreateBot(faucetAccount)
@@ -23,6 +51,7 @@ func main() {
 
 	err = bot.UpdatesProcessingLoop()
 	if err != nil {
-		log.Panicln(err)
+		return err
 	}
+	return nil
 }
