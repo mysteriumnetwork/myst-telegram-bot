@@ -1,10 +1,12 @@
-package faucet
+package account
 
 import (
 	"errors"
 	"flag"
 	"log"
 	"regexp"
+
+	"context"
 
 	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -14,10 +16,8 @@ import (
 )
 
 var KeyStoreDir = flag.String("keystore.directory", "testnet", "specify runtime dir for keystore keys")
-
-var Passphrase = flag.String("keystore.passphrase", "***REMOVED***", "Pashprase to unlock specified key from keystore")
+var Passphrase = flag.String("keystore.passphrase", "", "Passphrase to unlock specified key from keystore")
 var Address = *flag.String("ether.address", "0xCf16489612B1D8407Fd66960eCB21941718CD8FD", "Ethereum acc to use for deployment")
-
 var newAccount = *flag.Bool("create.account", false, "Creates a new Ethereum address")
 
 type FaucetAccount struct {
@@ -93,6 +93,14 @@ func (aa *FaucetAccount) CreateNewKeystoreTransactor() *bind.TransactOpts {
 			return tx.WithSignature(signer, signature)
 
 		},
+	}
+}
+
+func (aa *FaucetAccount) CreateNewFilterer() *bind.FilterOpts {
+	return &bind.FilterOpts{
+		Start:   3690000,
+		End:     nil,
+		Context: context.Background(),
 	}
 }
 
