@@ -22,9 +22,11 @@ var amount = flag.Int64("amount", 100, "Amount of MYST tokens to transfer")
 var maxAmount = flag.Int64("amount.max", 1000, "Maximum target amount of MYST tokens that can be transferred")
 
 var ErrTotalTokensExhausted = errors.New("max tokens transferred to given address reached")
+var ErrTooFrequentRequest = errors.New("too frequent duplicate request")
 
 type MystClient struct {
-	api *ethclient.Client
+	api               *ethclient.Client
+	addressReqByBlock map[string]uint64
 }
 
 func Create() (*MystClient, error) {
@@ -33,7 +35,10 @@ func Create() (*MystClient, error) {
 		return nil, err
 	}
 
-	return &MystClient{api: ethClient}, nil
+	return &MystClient{
+		api:               ethClient,
+		addressReqByBlock: make(map[string]uint64),
+	}, nil
 }
 
 func (client *MystClient) PrintBalance(account *accounts.Account) error {
@@ -51,7 +56,7 @@ func (client *MystClient) TransferFundsViaPaymentsABI(aa *account.FaucetAccount,
 		return err
 	}
 
-	log.Println("sending 100 MYST tokens to: ", to.String())
+	log.Printf("sending %d MYST tokens to: %s", *amount, to.String())
 
 	erc20token, err := generated.NewMystTokenTransactor(common.HexToAddress(*erc20contract), client.api)
 	if err != nil {
@@ -60,12 +65,16 @@ func (client *MystClient) TransferFundsViaPaymentsABI(aa *account.FaucetAccount,
 
 	transactor := aa.CreateNewKeystoreTransactor()
 	value := big.NewInt(*amount)
-	signedTx, err := erc20token.Transfer(transactor, *to, value)
-	err = client.api.SendTransaction(context.Background(), signedTx)
+	_, err = erc20token.Transfer(transactor, *to, value)
 	return err
 }
 
 func (client *MystClient) IsEligibleForTransfer(aa *account.FaucetAccount, to *common.Address) error {
+	err := client.throttleRequests(aa, to)
+	if err != nil {
+		return err
+	}
+
 	mystTokenFilterer, err := generated.NewMystTokenFilterer(common.HexToAddress(*erc20contract), client.api)
 	if err != nil {
 		return err
@@ -100,5 +109,27 @@ func (client *MystClient) IsEligibleForTransfer(aa *account.FaucetAccount, to *c
 		return ErrTotalTokensExhausted
 	}
 
+	return nil
+}
+
+func (client *MystClient) throttleRequests(faucetAccount *account.FaucetAccount, address *common.Address) error {
+	lastBlock, err := client.api.BlockByNumber(context.Background(), nil)
+	if err != nil {
+		return err
+	}
+
+	reqBlock, present := client.addressReqByBlock[address.String()]
+	if !present {
+		client.addressReqByBlock[address.String()] = lastBlock.NumberU64()
+		return nil
+	}
+
+	log.Println("Latest block is: ", lastBlock.NumberU64(), " last known request was on: ", reqBlock)
+	// we wait at least 8 blocks for another request to pass
+	if reqBlock > lastBlock.NumberU64()-8 {
+		return ErrTooFrequentRequest
+	}
+
+	client.addressReqByBlock[address.String()] = lastBlock.NumberU64()
 	return nil
 }
