@@ -12,7 +12,8 @@ import (
 	"github.com/mysterium/myst-telegram-bot/bot"
 )
 
-var cmd = flag.String("cmd", "run", "Command to execute")
+var cmd = flag.String("cmd", "run", "Command to execute: run, help")
+var help = flag.Bool("help", false, "print out help")
 
 func main() {
 	flag.Parse()
@@ -24,6 +25,11 @@ func main() {
 }
 
 func executeCommand(cmd string) error {
+	if *help {
+		flag.Usage()
+		return nil
+	}
+
 	fmt.Println("Executing: " + cmd)
 	switch cmd {
 	case "help":
@@ -31,6 +37,9 @@ func executeCommand(cmd string) error {
 		return nil
 	case "run":
 		return run()
+	default:
+		flag.Usage()
+		return nil
 	}
 	return errors.New("unknown command: " + cmd)
 }

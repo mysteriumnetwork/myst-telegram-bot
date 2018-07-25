@@ -1,0 +1,8 @@
+version: '2'
+services:
+
+  alpine:
+    build:
+      context: .
+      dockerfile: bin/bot_docker/alpine/Dockerfile
+    command: --create.account

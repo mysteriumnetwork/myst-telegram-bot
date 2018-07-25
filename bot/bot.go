@@ -7,6 +7,8 @@ import (
 
 	"fmt"
 
+	"flag"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/mysterium/myst-telegram-bot/account"
 	"github.com/mysterium/myst-telegram-bot/mystclient"
@@ -17,13 +19,15 @@ var ErrEtherAddressInvalid = errors.New("invalid ethereum address supplied")
 var ErrCommandIncomplete = errors.New("command incomplete")
 var ErrCommandInvalid = errors.New("invalid command, available commands: \n /send 0x_your_ethereum_address - sends some myst tokens to given ropsten testnet account")
 
+var botToken = flag.String("bot.token", "", "telegram bot auth token")
+
 type Bot struct {
 	Api           *tgbotapi.BotAPI
 	FaucetAccount *account.FaucetAccount
 }
 
 func CreateBot(fa *account.FaucetAccount) (*Bot, error) {
-	Api, err := tgbotapi.NewBotAPI("***REMOVED***")
+	Api, err := tgbotapi.NewBotAPI(*botToken)
 	if err != nil {
 		return nil, err
 	}

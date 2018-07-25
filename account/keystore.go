@@ -16,9 +16,9 @@ import (
 )
 
 var KeyStoreDir = flag.String("keystore.directory", "testnet", "specify runtime dir for keystore keys")
-var Passphrase = flag.String("keystore.passphrase", "", "Passphrase to unlock specified key from keystore")
-var Address = *flag.String("ether.address", "0xCf16489612B1D8407Fd66960eCB21941718CD8FD", "Ethereum acc to use for deployment")
-var newAccount = *flag.Bool("create.account", false, "Creates a new Ethereum address")
+var Passphrase = flag.String("keystore.passphrase", "change_me", "Passphrase to unlock specified key from keystore")
+var Address = flag.String("ether.address", "", "Ethereum acc to use for deployment")
+var newAccount = flag.Bool("create.account", false, "Creates a new Ethereum address")
 
 type FaucetAccount struct {
 	KS  *keystore.KeyStore
@@ -26,17 +26,25 @@ type FaucetAccount struct {
 }
 
 func CreateFaucetAccount() (*FaucetAccount, error) {
-	err := createNewAccount()
+	log.Println("Faucet newAccount: ", *newAccount)
+
+	faucetAccount, err := createNewAccount()
 	if err != nil {
 		return nil, err
+	}
+
+	if faucetAccount != nil {
+		*Address = faucetAccount.Address.String()
 	}
 
 	var ks *keystore.KeyStore
 	var account *accounts.Account
 
-	if Address != "" {
+	log.Println("Trying to use account: ", *Address)
+
+	if *Address != "" {
 		ks = GetKeystore()
-		account, err = getUnlockedAcc(Address, ks)
+		account, err = getUnlockedAcc(*Address, ks)
 	} else {
 		log.Println("no address specified, generate new or choose from: ")
 		listAccounts()
@@ -58,12 +66,13 @@ func listAccounts() error {
 	return nil
 }
 
-func createNewAccount() (err error) {
-	if newAccount {
+func createNewAccount() (*accounts.Account, error) {
+	if *newAccount {
 		ks := GetKeystore()
-		_, err = ks.NewAccount(*Passphrase)
+		a, err := ks.NewAccount(*Passphrase)
+		return &a, err
 	}
-	return
+	return nil, nil
 }
 
 func getUnlockedAcc(address string, ks *keystore.KeyStore) (*accounts.Account, error) {
