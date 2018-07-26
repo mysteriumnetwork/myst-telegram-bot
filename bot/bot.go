@@ -2,12 +2,12 @@ package bot
 
 import (
 	"errors"
-	"log"
-	"strings"
-
-	"fmt"
-
 	"flag"
+	"fmt"
+	"log"
+	"math"
+	"strings"
+	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/mysterium/myst-telegram-bot/account"
@@ -19,12 +19,14 @@ var ErrEtherAddressInvalid = errors.New("invalid ethereum address supplied")
 var ErrCommandIncomplete = errors.New("command incomplete")
 var ErrBotTokenMissing = errors.New("telegram bot token missing")
 var ErrCommandInvalid = errors.New("invalid command, available commands: \n /send 0x_your_ethereum_address - sends some myst tokens to given ropsten testnet account")
+var ErrRequestToFast = errors.New("you are sending commands too fast - try later")
 
 var botToken = flag.String("bot.token", "", "telegram bot auth token")
 
 type Bot struct {
-	Api           *tgbotapi.BotAPI
-	FaucetAccount *account.FaucetAccount
+	Api               *tgbotapi.BotAPI
+	FaucetAccount     *account.FaucetAccount
+	UsersRequestTimes map[string]int64
 }
 
 func CreateBot(fa *account.FaucetAccount) (*Bot, error) {
@@ -37,7 +39,7 @@ func CreateBot(fa *account.FaucetAccount) (*Bot, error) {
 		return nil, err
 	}
 
-	return &Bot{Api, fa}, nil
+	return &Bot{Api, fa, make(map[string]int64)}, nil
 }
 
 func (bot *Bot) UpdatesProcessingLoop() error {
@@ -61,6 +63,13 @@ func (bot *Bot) UpdatesProcessingLoop() error {
 
 		log.Printf("[%s %s (%s-%s)] %s", update.Message.From.FirstName, update.Message.From.LastName,
 			update.Message.From.UserName, update.Message.From.LanguageCode, update.Message.Text)
+
+		err := bot.throttleRequests(update)
+		if err != nil {
+			bot.sendBotMessage(update, err.Error())
+			log.Println(err)
+			continue
+		}
 
 		toAddress, err := getEtherAddress(update.Message.Text)
 		if err != nil {
@@ -86,6 +95,32 @@ func (bot *Bot) UpdatesProcessingLoop() error {
 		bot.sendBotMessage(update, msg)
 	}
 
+	return nil
+}
+
+func (bot *Bot) throttleRequests(update tgbotapi.Update) error {
+	log.Println("user count: ", len(bot.UsersRequestTimes))
+
+	var user string
+	if update.Message.From.UserName != "" {
+		user = update.Message.From.UserName
+	} else {
+		user = fmt.Sprintf("%s %s", update.Message.From.FirstName, update.Message.From.LastName)
+	}
+
+	lastReqTime, present := bot.UsersRequestTimes[user]
+
+	if !present {
+		bot.UsersRequestTimes[user] = time.Now().UnixNano()
+		return nil
+	}
+
+	// we wait at least 10 seconds for next request
+	if (time.Now().UnixNano() - lastReqTime) < int64(math.Pow10(10)) {
+		return ErrRequestToFast
+	}
+
+	bot.UsersRequestTimes[user] = time.Now().UnixNano()
 	return nil
 }
 

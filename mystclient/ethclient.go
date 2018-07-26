@@ -2,12 +2,10 @@ package mystclient
 
 import (
 	"context"
-	"flag"
-	"math/big"
-
-	"log"
-
 	"errors"
+	"flag"
+	"log"
+	"math/big"
 
 	"github.com/MysteriumNetwork/payments/mysttoken/generated"
 	"github.com/ethereum/go-ethereum/accounts"

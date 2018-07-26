@@ -1,12 +1,11 @@
 package account
 
 import (
+	"context"
 	"errors"
 	"flag"
 	"log"
 	"regexp"
-
-	"context"
 
 	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
