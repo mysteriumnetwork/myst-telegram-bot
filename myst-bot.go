@@ -3,9 +3,9 @@ package main
 import (
 	"errors"
 	"flag"
-	"os"
-
 	"log"
+	"os"
+	"strings"
 
 	"github.com/mysterium/myst-telegram-bot/account"
 	"github.com/mysterium/myst-telegram-bot/bot"
@@ -29,7 +29,8 @@ func executeCommand(cmd string) error {
 		return nil
 	}
 
-	log.Println("Executing: " + cmd)
+	log.Println("Executing with args: " + strings.Join(os.Args[1:], " "))
+
 	switch cmd {
 	case "help":
 		flag.Usage()

@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 
 IMAGE="myst-telegram-bot_alpine"
-# REPO="mysteriumnetwork"
-REPO="zolia"
+REPO="mysteriumnetwork"
 
 printf "Publishing $IMAGE image..\n"
 
