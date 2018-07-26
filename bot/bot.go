@@ -17,6 +17,7 @@ import (
 
 var ErrEtherAddressInvalid = errors.New("invalid ethereum address supplied")
 var ErrCommandIncomplete = errors.New("command incomplete")
+var ErrBotTokenMissing = errors.New("telegram bot token missing")
 var ErrCommandInvalid = errors.New("invalid command, available commands: \n /send 0x_your_ethereum_address - sends some myst tokens to given ropsten testnet account")
 
 var botToken = flag.String("bot.token", "", "telegram bot auth token")
@@ -27,6 +28,10 @@ type Bot struct {
 }
 
 func CreateBot(fa *account.FaucetAccount) (*Bot, error) {
+	if *botToken == "" {
+		return nil, ErrBotTokenMissing
+	}
+
 	Api, err := tgbotapi.NewBotAPI(*botToken)
 	if err != nil {
 		return nil, err

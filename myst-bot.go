@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"flag"
-	"fmt"
 	"os"
 
 	"log"
@@ -19,7 +18,7 @@ func main() {
 	flag.Parse()
 	err := executeCommand(*cmd)
 	if err != nil {
-		fmt.Printf("error occuried: %v\n", err)
+		log.Printf("error occuried: %v\n", err)
 		os.Exit(-1)
 	}
 }
@@ -30,7 +29,7 @@ func executeCommand(cmd string) error {
 		return nil
 	}
 
-	fmt.Println("Executing: " + cmd)
+	log.Println("Executing: " + cmd)
 	switch cmd {
 	case "help":
 		flag.Usage()

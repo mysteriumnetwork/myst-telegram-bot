@@ -15,9 +15,9 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 )
 
-var KeyStoreDir = flag.String("keystore.directory", "testnet", "specify runtime dir for keystore keys")
-var Passphrase = flag.String("keystore.passphrase", "change_me", "Passphrase to unlock specified key from keystore")
-var Address = flag.String("ether.address", "", "Ethereum acc to use for deployment")
+var keyStoreDir = flag.String("keystore.directory", "testnet", "specify runtime dir for keystore keys")
+var passphrase = flag.String("keystore.passphrase", "change_me", "passphrase to unlock specified key from keystore")
+var address = flag.String("ether.address", "", "Ethereum acc to use for deployment")
 var newAccount = flag.Bool("create.account", false, "Creates a new Ethereum address")
 
 type FaucetAccount struct {
@@ -34,17 +34,17 @@ func CreateFaucetAccount() (*FaucetAccount, error) {
 	}
 
 	if faucetAccount != nil {
-		*Address = faucetAccount.Address.String()
+		*address = faucetAccount.Address.String()
 	}
 
 	var ks *keystore.KeyStore
 	var account *accounts.Account
 
-	log.Println("Trying to use account: ", *Address)
+	log.Println("Trying to use account: ", *address)
 
-	if *Address != "" {
+	if *address != "" {
 		ks = GetKeystore()
-		account, err = getUnlockedAcc(*Address, ks)
+		account, err = getUnlockedAcc(*address, ks)
 	} else {
 		log.Println("no address specified, generate new or choose from: ")
 		listAccounts()
@@ -55,7 +55,7 @@ func CreateFaucetAccount() (*FaucetAccount, error) {
 }
 
 func GetKeystore() *keystore.KeyStore {
-	return keystore.NewKeyStore(*KeyStoreDir, keystore.StandardScryptN, keystore.StandardScryptP)
+	return keystore.NewKeyStore(*keyStoreDir, keystore.StandardScryptN, keystore.StandardScryptP)
 }
 
 func listAccounts() error {
@@ -69,7 +69,7 @@ func listAccounts() error {
 func createNewAccount() (*accounts.Account, error) {
 	if *newAccount {
 		ks := GetKeystore()
-		a, err := ks.NewAccount(*Passphrase)
+		a, err := ks.NewAccount(*passphrase)
 		return &a, err
 	}
 	return nil, nil
@@ -81,7 +81,7 @@ func getUnlockedAcc(address string, ks *keystore.KeyStore) (*accounts.Account, e
 	if err != nil {
 		return nil, err
 	}
-	err = ks.Unlock(foundAcc, *Passphrase)
+	err = ks.Unlock(foundAcc, *passphrase)
 	if err != nil {
 		return nil, err
 	}

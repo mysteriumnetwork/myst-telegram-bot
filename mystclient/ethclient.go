@@ -16,7 +16,7 @@ import (
 	"github.com/mysterium/myst-telegram-bot/account"
 )
 
-var GethUrl = flag.String("geth.url", "https://ropsten.infura.io/v3/0cf3087cfc4f4c80a349c305aed2d835", "URL value of started geth to connect")
+var gethUrl = flag.String("geth.url", "https://ropsten.infura.io/v3/0cf3087cfc4f4c80a349c305aed2d835", "URL value of started geth to connect")
 var erc20contract = flag.String("erc20.contract", "0x453c11c058f13b36a35e1aee504b20c1a09667de", "Address of ERC20 MYST token contract")
 var amount = flag.Int64("amount", 100, "Amount of MYST tokens to transfer")
 var maxAmount = flag.Int64("amount.max", 1000, "Maximum target amount of MYST tokens that can be transferred")
@@ -30,7 +30,7 @@ type MystClient struct {
 }
 
 func Create() (*MystClient, error) {
-	ethClient, err := ethclient.Dial(*GethUrl)
+	ethClient, err := ethclient.Dial(*gethUrl)
 	if err != nil {
 		return nil, err
 	}
