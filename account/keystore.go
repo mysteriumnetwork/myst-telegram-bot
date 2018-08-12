@@ -14,8 +14,8 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 )
 
-var keyStoreDir = flag.String("keystore.directory", "testnet", "specify runtime dir for keystore keys")
-var passphrase = flag.String("keystore.passphrase", "change_me", "passphrase to unlock specified key from keystore")
+var keyStoreDir = flag.String("keystore.directory", "keystore", "specify runtime dir for keystore keys")
+var passphrase = flag.String("keystore.passphrase", "", "passphrase to unlock specified key from keystore")
 var address = flag.String("ether.address", "", "Ethereum acc to use for deployment")
 var newAccount = flag.Bool("create.account", false, "Creates a new Ethereum address")
 
